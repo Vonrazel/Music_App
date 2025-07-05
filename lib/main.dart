@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
 import 'screens/main_navigation.dart';
 import 'services/hive_service.dart';
+import 'services/user_profile_service.dart';
 
 void main() async {
   print('🚀 Starting Music App...');
@@ -22,6 +23,12 @@ void main() async {
     final hiveService = HiveService();
     await hiveService.initialize();
     print('✅ HiveService initialized successfully');
+    
+    print('🔄 Initializing UserProfileService...');
+    // Initialize UserProfileService
+    final userProfileService = UserProfileService();
+    await userProfileService.initialize();
+    print('✅ UserProfileService initialized successfully');
     
     print('🎵 Starting MusicApp...');
     runApp(const MusicApp());

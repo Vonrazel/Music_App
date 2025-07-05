@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../services/user_profile_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,102 +12,128 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
-  final TextEditingController _nameController = TextEditingController(text: 'John Doe');
-  final TextEditingController _bioController = TextEditingController(text: 'Music lover and creator');
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final UserProfileService _userProfileService = UserProfileService();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeProfile();
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
+    _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeProfile() async {
+    await _userProfileService.initialize();
+    final profile = _userProfileService.currentProfile;
+    if (profile != null) {
+      _nameController.text = profile.name;
+      _bioController.text = profile.bio;
+      _emailController.text = profile.email;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            backgroundColor: const Color(0xFF121212),
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1DB954), Color(0xFF1ed760)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Profile Picture
-                      GestureDetector(
-                        onTap: () {
-                          // Handle profile picture change
-                          _showImagePickerDialog();
-                        },
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: const DecorationImage(
-                              image: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'),
-                              fit: BoxFit.cover,
+      body: ValueListenableBuilder<UserProfile?>(
+        valueListenable: _userProfileService.profileNotifier,
+        builder: (context, profile, child) {
+          return CustomScrollView(
+            slivers: [
+              // App Bar
+              SliverAppBar(
+                backgroundColor: const Color(0xFF121212),
+                expandedHeight: 200,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1DB954), Color(0xFF1ed760)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Profile Picture
+                          GestureDetector(
+                            onTap: () {
+                              // Handle profile picture change
+                              _showImagePickerDialog();
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image: _getProfileImageProvider(profile?.profileImageUrl ?? ''),
+                                  fit: BoxFit.cover,
+                                ),
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                              ),
                             ),
-                            border: Border.all(color: Colors.white, width: 3),
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.black.withOpacity(0.3),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
+                          const SizedBox(height: 16),
+                          Text(
+                            profile?.name ?? 'John Doe',
+                            style: const TextStyle(
                               color: Colors.white,
-                              size: 30,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _nameController.text,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  _isEditing ? Icons.check : Icons.edit,
-                  color: Colors.white,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _isEditing = !_isEditing;
-                  });
-                },
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      _isEditing ? Icons.check : Icons.edit,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (_isEditing) {
+                        // Save changes
+                        _saveProfileChanges();
+                      }
+                      setState(() {
+                        _isEditing = !_isEditing;
+                      });
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
           
           // Content
           SliverToBoxAdapter(
@@ -114,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Stats Section
-                  _buildStatsSection(),
+                  _buildStatsSection(profile),
                   const SizedBox(height: 24),
                   
                   // Profile Info Section
@@ -132,11 +161,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+      );
+        },
       ),
     );
   }
 
-  Widget _buildStatsSection() {
+  ImageProvider _getProfileImageProvider(String imageUrl) {
+    if (imageUrl.startsWith('data:image/')) {
+      // Base64 image for web
+      return MemoryImage(base64Decode(imageUrl.split(',')[1]));
+    } else if (imageUrl.startsWith('http')) {
+      // Network image
+      return NetworkImage(imageUrl);
+    } else {
+      // Local file
+      return FileImage(File(imageUrl));
+    }
+  }
+
+  Future<void> _saveProfileChanges() async {
+    await _userProfileService.updateProfile(
+      name: _nameController.text,
+      email: _emailController.text,
+      bio: _bioController.text,
+    );
+  }
+
+  Widget _buildStatsSection(UserProfile? profile) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -146,10 +198,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Playlists', '12'),
-          _buildStatItem('Followers', '1.2K'),
-          _buildStatItem('Following', '856'),
-          _buildStatItem('Songs', '2.4K'),
+          _buildStatItem('Playlists', '${profile?.playlists ?? 0}'),
+          _buildStatItem('Followers', '${profile?.followers ?? 0}'),
+          _buildStatItem('Following', '${profile?.following ?? 0}'),
+          _buildStatItem('Songs', '${profile?.songs ?? 0}'),
         ],
       ),
     );
@@ -214,9 +266,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
               _buildInfoField(
                 'Email',
-                TextEditingController(text: 'john.doe@example.com'),
+                _emailController,
                 Icons.email,
-                enabled: false,
+                enabled: _isEditing,
               ),
             ],
           ),
@@ -394,16 +446,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // Handle camera
-            },
-            child: const Text('Camera', style: TextStyle(color: Color(0xFF1DB954))),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Handle gallery
+              await _pickProfileImage();
             },
             child: const Text('Gallery', style: TextStyle(color: Color(0xFF1DB954))),
           ),
@@ -414,6 +459,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickProfileImage() async {
+    final imageUrl = await _userProfileService.pickAndSaveProfileImage();
+    if (imageUrl != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture updated successfully!'),
+          backgroundColor: Color(0xFF1DB954),
+        ),
+      );
+    }
   }
 
   void _showLogoutDialog() {

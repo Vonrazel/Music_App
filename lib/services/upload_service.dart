@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'music_service.dart';
 import 'hive_service.dart';
+import 'user_profile_service.dart';
 import 'upload_web.dart'
     if (dart.library.html) 'upload_web.dart'
     if (dart.library.io) 'upload_stub.dart';
@@ -15,6 +16,7 @@ class UploadService {
 
   final HiveService _hiveService = HiveService();
   final MusicService _musicService = MusicService();
+  final UserProfileService _userProfileService = UserProfileService();
 
   // Supported audio formats
   static const List<String> _supportedFormats = ['mp3', 'wav', 'aac', 'm4a'];
@@ -51,6 +53,9 @@ class UploadService {
       
       // Add to music service
       await _addSongToMusicService(song);
+      
+      // Increment user's songs count
+      await _userProfileService.incrementSongsCount();
       
       return song;
     } catch (e) {
