@@ -11,6 +11,7 @@ class FullscreenPlayer extends StatefulWidget {
 class _FullscreenPlayerState extends State<FullscreenPlayer> {
   final MusicService _musicService = MusicService();
   bool _isDragging = false;
+  bool _isButtonPressed = false; // Local state for immediate button feedback
   double _sliderValue = 0.0;
 
   String _formatDuration(Duration duration) {
@@ -28,13 +29,16 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
     
     // If no current song, show placeholder
     if (currentSong == null) {
+      final theme = Theme.of(context);
+      final colorScheme = theme.colorScheme;
+      
       return Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: colorScheme.background,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -46,24 +50,35 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF282828),
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(60),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.music_note,
                   size: 60,
-                  color: Colors.white54,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'No song playing',
-                style: TextStyle(color: Colors.white70, fontSize: 18),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Select a song to start listening',
-                style: TextStyle(color: Colors.white54, fontSize: 14),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -80,47 +95,61 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
         debugPrint('[FullscreenPlayer] StreamBuilder - currentSong: ${song?.title ?? 'null'}');
         
         if (song == null) {
-          return Scaffold(
-            backgroundColor: const Color(0xFF121212),
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+                  final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF282828),
-                      borderRadius: BorderRadius.circular(60),
-                    ),
-                    child: const Icon(
-                      Icons.music_note,
-                      size: 60,
-                      color: Colors.white54,
-                    ),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(60),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'No song playing',
-                    style: TextStyle(color: Colors.white70, fontSize: 18),
+                  child: Icon(
+                    Icons.music_note,
+                    size: 60,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Select a song to start listening',
-                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'No song playing',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Select a song to start listening',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-          );
+          ),
+        );
         }
 
         return StreamBuilder<bool>(
@@ -138,18 +167,21 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                   initialData: _musicService.duration, // Provide initial data
                   builder: (context, durationSnapshot) {
                     final duration = durationSnapshot.data ?? Duration.zero;
+                    final theme = Theme.of(context);
+                    final colorScheme = theme.colorScheme;
+                    
                     return Scaffold(
-                      backgroundColor: const Color(0xFF121212),
+                      backgroundColor: colorScheme.background,
                       appBar: AppBar(
                         backgroundColor: Colors.transparent,
                         elevation: 0,
                         leading: IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                         actions: [
                           IconButton(
-                            icon: const Icon(Icons.more_vert, color: Colors.white),
+                            icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
                             onPressed: () {},
                           ),
                         ],
@@ -171,7 +203,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
+                                        color: colorScheme.shadow.withValues(alpha: 0.3),
                                         blurRadius: 20,
                                         offset: const Offset(0, 10),
                                       ),
@@ -197,9 +229,8 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                 children: [
                                   Text(
                                     song.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      color: colorScheme.onSurface,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     textAlign: TextAlign.center,
@@ -209,9 +240,8 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                   const SizedBox(height: 8),
                                   Text(
                                     song.artist,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 18,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                     textAlign: TextAlign.center,
                                     maxLines: 1,
@@ -225,9 +255,9 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                               children: [
                                 SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: const Color(0xFF1DB954),
-                                    inactiveTrackColor: Colors.white24,
-                                    thumbColor: const Color(0xFF1DB954),
+                                    activeTrackColor: colorScheme.primary,
+                                    inactiveTrackColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                                    thumbColor: colorScheme.primary,
                                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                                     overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                                   ),
@@ -259,16 +289,14 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     children: [
                                       Text(
                                         _formatDuration(position),
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                       Text(
                                         _formatDuration(duration),
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -289,7 +317,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     onTap: () {},
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
-                                      child: const Icon(Icons.shuffle, color: Colors.white70, size: 28),
+                                      child: Icon(Icons.shuffle, color: colorScheme.onSurfaceVariant, size: 28),
                                     ),
                                   ),
                                 ),
@@ -303,25 +331,40 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
-                                      child: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
+                                      child: Icon(Icons.skip_previous, color: colorScheme.onSurface, size: 36),
                                     ),
                                   ),
                                 ),
                                 // Play/Pause button
                                 Material(
-                                  color: const Color(0xFF1DB954),
+                                  color: colorScheme.primary,
                                   shape: const CircleBorder(),
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(30),
                                     onTap: () {
+                                      // Immediate visual feedback
+                                      setState(() {
+                                        _isButtonPressed = true;
+                                      });
+                                      
+                                      // Toggle play/pause
                                       _musicService.togglePlayPause();
+                                      
+                                      // Reset button state after a short delay
+                                      Future.delayed(const Duration(milliseconds: 100), () {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isButtonPressed = false;
+                                          });
+                                        }
+                                      });
                                     },
                                     child: Container(
                                       width: 60,
                                       height: 60,
                                       child: Icon(
                                         isPlaying ? Icons.pause : Icons.play_arrow,
-                                        color: Colors.white,
+                                        color: colorScheme.onPrimary,
                                         size: 32,
                                       ),
                                     ),
@@ -337,7 +380,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
-                                      child: const Icon(Icons.skip_next, color: Colors.white, size: 36),
+                                      child: Icon(Icons.skip_next, color: colorScheme.onSurface, size: 36),
                                     ),
                                   ),
                                 ),
@@ -349,7 +392,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                                     onTap: () {},
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
-                                      child: const Icon(Icons.repeat, color: Colors.white70, size: 28),
+                                      child: Icon(Icons.repeat, color: colorScheme.onSurfaceVariant, size: 28),
                                     ),
                                   ),
                                 ),

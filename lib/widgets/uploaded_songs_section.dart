@@ -15,6 +15,9 @@ class UploadedSongsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     // Get uploaded songs (songs with IDs starting with 'uploaded_')
     var uploadedSongs = musicService.songs.where((song) => song.id.startsWith('uploaded_')).toList();
     
@@ -40,30 +43,35 @@ class UploadedSongsSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF282828),
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               children: [
-                const Icon(
+                Icon(
                   Icons.cloud_upload,
-                  color: Colors.white54,
+                  color: colorScheme.onSurfaceVariant,
                   size: 32,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'No uploaded songs yet',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Upload your music in the Create tab',
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -83,17 +91,16 @@ class UploadedSongsSection extends StatelessWidget {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1DB954),
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Upload Music',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -112,9 +119,8 @@ class UploadedSongsSection extends StatelessWidget {
           children: [
             Text(
               'Uploaded Songs (${uploadedSongs.length})',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -135,6 +141,9 @@ class UploadedSongsSection extends StatelessWidget {
   }
 
   Widget _buildUploadedSongTile(BuildContext context, Song song) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return StreamBuilder<Song?>(
       stream: musicService.currentSongStream,
       builder: (context, snapshot) {
@@ -150,9 +159,9 @@ class UploadedSongsSection extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isCurrentSong ? const Color(0xFF1DB954).withValues(alpha: 0.2) : const Color(0xFF282828),
+                color: isCurrentSong ? colorScheme.primary.withValues(alpha: 0.1) : colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
-                border: isCurrentSong ? Border.all(color: const Color(0xFF1DB954), width: 1) : null,
+                border: isCurrentSong ? Border.all(color: colorScheme.primary, width: 1) : null,
               ),
               child: Row(
                 children: [
@@ -171,14 +180,14 @@ class UploadedSongsSection extends StatelessWidget {
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Container(
-                            color: const Color(0xFF282828),
-                            child: const Center(
+                            color: colorScheme.surface,
+                            child: Center(
                               child: SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                                 ),
                               ),
                             ),
@@ -186,10 +195,10 @@ class UploadedSongsSection extends StatelessWidget {
                         },
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: const Color(0xFF282828),
-                            child: const Icon(
+                            color: colorScheme.surface,
+                            child: Icon(
                               Icons.music_note,
-                              color: Colors.white54,
+                              color: colorScheme.onSurfaceVariant,
                               size: 20,
                             ),
                           );
@@ -206,9 +215,8 @@ class UploadedSongsSection extends StatelessWidget {
                       children: [
                         Text(
                           song.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -217,9 +225,8 @@ class UploadedSongsSection extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           song.artist,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -244,7 +251,7 @@ class UploadedSongsSection extends StatelessWidget {
                             padding: const EdgeInsets.all(8),
                             child: Icon(
                               isLiked ? Icons.favorite : Icons.favorite_border,
-                              color: Colors.white,
+                              color: colorScheme.onSurface,
                               size: 20,
                             ),
                           ),
@@ -266,9 +273,9 @@ class UploadedSongsSection extends StatelessWidget {
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(
+                        child: Icon(
                           Icons.add,
-                          color: Colors.white,
+                          color: colorScheme.onSurface,
                           size: 20,
                         ),
                       ),
@@ -291,7 +298,7 @@ class UploadedSongsSection extends StatelessWidget {
                         padding: const EdgeInsets.all(8),
                         child: Icon(
                           (isCurrentSong && isPlaying) ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
+                          color: colorScheme.onSurface,
                           size: 24,
                         ),
                       ),

@@ -49,6 +49,7 @@ class MusicService {
   final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
   final StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
   final StreamController<List<Song>> _likedSongsController = StreamController<List<Song>>.broadcast();
+  final StreamController<List<Song>> _uploadedSongsController = StreamController<List<Song>>.broadcast();
   
   Song? _currentSong;
   bool _isPlaying = false;
@@ -167,6 +168,7 @@ class MusicService {
   Stream<Duration> get positionStream => _positionController.stream;
   Stream<Duration> get durationStream => _durationController.stream;
   Stream<List<Song>> get likedSongsStream => _likedSongsController.stream;
+  Stream<List<Song>> get uploadedSongsStream => _uploadedSongsController.stream;
 
   // --- Analytics Streams ---
   final StreamController<void> _analyticsController = StreamController<void>.broadcast();
@@ -299,6 +301,9 @@ class MusicService {
       }
       
       print('Loaded ${uploadedSongs.length} uploaded songs from Hive');
+      
+      // Notify uploaded songs stream
+      _uploadedSongsController.add(this.uploadedSongs);
     } catch (e) {
       print('Error loading uploaded songs from Hive: $e');
     }
@@ -366,12 +371,34 @@ class MusicService {
         _currentSongController.add(_currentSong);
       }
       
+      // Update uploaded song in Hive if it's an uploaded song
+      if (songId.startsWith('uploaded_')) {
+        await _updateUploadedSongLikeStatus(songId, newLikedStatus);
+      }
+      
       // Notify listeners
       _likedSongsController.add(_likedSongs);
       
       print('${newLikedStatus ? 'Liked' : 'Unliked'}: ${song.title}');
     } catch (e) {
       print('Error toggling like status: $e');
+    }
+  }
+
+  // Update uploaded song like status in Hive
+  Future<void> _updateUploadedSongLikeStatus(String songId, bool isLiked) async {
+    try {
+      final uploadedSongsData = _hiveService.box.get('uploadedSongs', defaultValue: []);
+      final uploadedSongs = List<Map<String, dynamic>>.from(uploadedSongsData);
+      
+      final songIndex = uploadedSongs.indexWhere((song) => song['id'] == songId);
+      if (songIndex != -1) {
+        uploadedSongs[songIndex]['isLiked'] = isLiked;
+        await _hiveService.box.put('uploadedSongs', uploadedSongs);
+        print('Updated uploaded song like status in Hive: $songId -> $isLiked');
+      }
+    } catch (e) {
+      print('Error updating uploaded song like status in Hive: $e');
     }
   }
 
@@ -386,7 +413,20 @@ class MusicService {
     if (!_songs.any((s) => s.id == song.id)) {
       _songs.add(song);
       print('Added uploaded song: ${song.title}');
+      
+      // Notify uploaded songs stream
+      _uploadedSongsController.add(uploadedSongs);
     }
+  }
+
+  // Refresh songs list and notify listeners
+  void refreshSongsList() {
+    // This will trigger UI updates for any widgets listening to the songs list
+    // The existing streams will automatically update when songs are added
+    print('Refreshing songs list - total songs: ${_songs.length}');
+    
+    // Notify uploaded songs stream
+    _uploadedSongsController.add(uploadedSongs);
   }
 
   // Play a specific song
@@ -484,7 +524,7 @@ class MusicService {
 
 
 
-  // Play/Pause toggle with position memory
+  // Play/Pause toggle with position memory - Enhanced for immediate responsiveness
   Future<void> togglePlayPause() async {
     if (_currentSong == null) {
       // If no song is playing, start with the first song
@@ -498,18 +538,30 @@ class MusicService {
     try {
       print('🔄 Toggling play/pause for: ${_currentSong!.title}');
 
-      if (_isPlaying) {
-        // Pause the audio (position is automatically saved)
-        await _audioPlayer.pause();
-        _isPlaying = false;
-        _isPlayingController.add(_isPlaying);
-        print('⏸️ Audio paused at position: ${_position.inSeconds} seconds');
-      } else {
+      // Immediately update UI state for instant feedback
+      final newPlayingState = !_isPlaying;
+      _isPlaying = newPlayingState;
+      _isPlayingController.add(_isPlaying);
+      
+      // Perform audio operation in background
+      if (newPlayingState) {
         // Resume the audio from the same position
-        await _audioPlayer.play();
-        _isPlaying = true;
-        _isPlayingController.add(_isPlaying);
+        _audioPlayer.play().catchError((e) {
+          print('❌ Error resuming audio: $e');
+          // Revert state if operation fails
+          _isPlaying = false;
+          _isPlayingController.add(_isPlaying);
+        });
         print('▶️ Audio resumed from position: ${_position.inSeconds} seconds');
+      } else {
+        // Pause the audio (position is automatically saved)
+        _audioPlayer.pause().catchError((e) {
+          print('❌ Error pausing audio: $e');
+          // Revert state if operation fails
+          _isPlaying = true;
+          _isPlayingController.add(_isPlaying);
+        });
+        print('⏸️ Audio paused at position: ${_position.inSeconds} seconds');
       }
     } catch (e) {
       print('❌ Error toggling play/pause: $e');
@@ -583,6 +635,11 @@ class MusicService {
     }
   }
 
+  // Get uploaded songs
+  List<Song> get uploadedSongs {
+    return _songs.where((song) => song.id.startsWith('uploaded_')).toList();
+  }
+
   // Get top 10 songs
   List<Song> getTopSongs() {
     return _songs.take(10).toList();
@@ -603,6 +660,7 @@ class MusicService {
       _positionController.close();
       _durationController.close();
       _likedSongsController.close();
+      _uploadedSongsController.close();
       _analyticsController.close();
       print('MusicService disposed successfully');
     } catch (e) {

@@ -70,8 +70,11 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Dialog(
-      backgroundColor: const Color(0xFF282828),
+      backgroundColor: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -83,9 +86,9 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
             // Header
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1DB954),
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
@@ -110,18 +113,16 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                       children: [
                         Text(
                           'Add to Playlist',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.song.title,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -144,11 +145,10 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Create New Playlist',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -158,12 +158,12 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                               Expanded(
                                 child: TextField(
                                   controller: _playlistNameController,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: colorScheme.onSurface),
                                   decoration: InputDecoration(
                                     hintText: 'Playlist name',
-                                    hintStyle: const TextStyle(color: Colors.white54),
+                                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                                     filled: true,
-                                    fillColor: Colors.white.withValues(alpha: 0.1),
+                                    fillColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
@@ -179,7 +179,8 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                               ElevatedButton(
                                 onPressed: _createNewPlaylist,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1DB954),
+                                  backgroundColor: colorScheme.primary,
+                                  foregroundColor: colorScheme.onPrimary,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -192,7 +193,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                       ),
                     ),
                     
-                    const Divider(color: Colors.white24, height: 1),
+                    Divider(color: colorScheme.outline.withValues(alpha: 0.2), height: 1),
                     
                     // Existing playlists section
                     Padding(
@@ -200,24 +201,22 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Add to Existing Playlist',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 12),
                           
                           if (_playlists.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(16),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
                               child: Text(
                                 'No playlists found. Create one above!',
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 14,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -248,23 +247,21 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                                   ),
                                   title: Text(
                                     playlist['name'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: colorScheme.onSurface,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   subtitle: Text(
                                     '$songCount songs',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   trailing: IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.add_circle_outline,
-                                      color: Color(0xFF1DB954),
+                                      color: colorScheme.primary,
                                       size: 28,
                                     ),
                                     onPressed: () => _addToPlaylist(playlist['id']),
@@ -289,16 +286,15 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
                 child: TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    backgroundColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

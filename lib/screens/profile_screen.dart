@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/user_profile_service.dart';
+import '../services/auth_service.dart';
+import '../providers/theme_provider.dart';
+import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final UserProfileService _userProfileService = UserProfileService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -43,8 +48,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: colorScheme.background,
       body: ValueListenableBuilder<UserProfile?>(
         valueListenable: _userProfileService.profileNotifier,
         builder: (context, profile, child) {
@@ -52,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             slivers: [
               // App Bar
               SliverAppBar(
-                backgroundColor: const Color(0xFF121212),
+                backgroundColor: colorScheme.background,
                 expandedHeight: 200,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
@@ -71,7 +79,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // Profile Picture
                           GestureDetector(
                             onTap: () {
-                              // Handle profile picture change
                               _showImagePickerDialog();
                             },
                             child: Container(
@@ -88,11 +95,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.black.withValues(alpha: 0.3),
+                                  color: Colors.black.withOpacity(0.3),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.camera_alt,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   size: 30,
                                 ),
                               ),
@@ -100,10 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            profile?.name ?? 'John Doe',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
+                            profile?.name ?? _authService.currentUser?.username ?? 'John Doe',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -113,18 +119,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
                     icon: Icon(
                       _isEditing ? Icons.check : Icons.edit,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     onPressed: () {
                       if (_isEditing) {
-                        // Save changes
                         _saveProfileChanges();
                       }
                       setState(() {
@@ -134,34 +139,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-          
-          // Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Stats Section
-                  _buildStatsSection(profile),
-                  const SizedBox(height: 24),
-                  
-                  // Profile Info Section
-                  _buildProfileInfoSection(),
-                  const SizedBox(height: 24),
-                  
-                  // Settings Section
-                  _buildSettingsSection(),
-                  const SizedBox(height: 24),
-                  
-                  // Account Actions
-                  _buildAccountActions(),
-                ],
+              // Content
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatsSection(profile),
+                      const SizedBox(height: 24),
+                      _buildProfileInfoSection(),
+                      const SizedBox(height: 24),
+                      _buildSettingsSection(),
+                      const SizedBox(height: 24),
+                      _buildAccountActions(),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
-      );
+            ],
+          );
         },
       ),
     );
@@ -169,14 +166,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   ImageProvider _getProfileImageProvider(String imageUrl) {
     if (imageUrl.startsWith('data:image/')) {
-      // Base64 image for web
       return MemoryImage(base64Decode(imageUrl.split(',')[1]));
     } else if (imageUrl.startsWith('http')) {
-      // Network image
       return NetworkImage(imageUrl);
-    } else {
-      // Local file
+    } else if (imageUrl.isNotEmpty) {
       return FileImage(File(imageUrl));
+    } else {
+      return const AssetImage('assets/images/kodak_cover.png.png');
     }
   }
 
@@ -189,11 +185,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatsSection(UserProfile? profile) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF282828),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -208,22 +214,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatItem(String label, String value) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -231,23 +238,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfoSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Profile Information',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
+        const SizedBox(height: 8),
+        if (_authService.currentUser != null)
+          Text(
+            'Welcome back, ${_authService.currentUser!.username}!',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.primary,
+            ),
+          ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF282828),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -284,14 +307,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     int maxLines = 1,
     bool enabled = true,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
@@ -299,11 +324,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           controller: controller,
           enabled: enabled && _isEditing,
           maxLines: maxLines,
-          style: const TextStyle(color: Colors.white),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurface,
+          ),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.white70),
+            prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
             filled: true,
-            fillColor: enabled ? const Color(0xFF404040) : const Color(0xFF202020),
+            fillColor: enabled ? colorScheme.surfaceVariant : colorScheme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
@@ -316,22 +343,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSettingsSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Settings',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF282828),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -347,11 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {},
               ),
               _buildDivider(),
-              _buildSettingTile(
-                'Theme',
-                Icons.palette,
-                onTap: () {},
-              ),
+              _buildThemeTile(),
               _buildDivider(),
               _buildSettingTile(
                 'Language',
@@ -366,42 +397,248 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSettingTile(String title, IconData icon, {required VoidCallback onTap}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return ListTile(
-      leading: Icon(icon, color: Colors.white70),
+      leading: Icon(icon, color: colorScheme.onSurfaceVariant),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white),
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: colorScheme.onSurface,
+        ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+      trailing: Icon(Icons.arrow_forward_ios, color: colorScheme.onSurfaceVariant, size: 16),
       onTap: onTap,
     );
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      color: Colors.white12,
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Divider(
+      color: colorScheme.outline,
       height: 1,
       indent: 56,
     );
   }
 
+  Widget _buildThemeTile() {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        
+        return ListTile(
+          leading: Icon(Icons.palette, color: colorScheme.onSurfaceVariant),
+          title: Text(
+            'Theme',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+          subtitle: Text(
+            _getThemeModeText(themeProvider.themeMode),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: PopupMenuButton<ThemeMode>(
+            icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
+            onSelected: (ThemeMode themeMode) {
+              themeProvider.setThemeMode(themeMode);
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<ThemeMode>(
+                value: ThemeMode.system,
+                child: Row(
+                  children: [
+                    Icon(Icons.brightness_auto, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text('System', style: TextStyle(color: colorScheme.onSurface)),
+                  ],
+                ),
+              ),
+              PopupMenuItem<ThemeMode>(
+                value: ThemeMode.light,
+                child: Row(
+                  children: [
+                    Icon(Icons.brightness_7, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text('Light', style: TextStyle(color: colorScheme.onSurface)),
+                  ],
+                ),
+              ),
+              PopupMenuItem<ThemeMode>(
+                value: ThemeMode.dark,
+                child: Row(
+                  children: [
+                    Icon(Icons.brightness_4, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text('Dark', style: TextStyle(color: colorScheme.onSurface)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          onTap: () {
+            // Show theme selection dialog
+            _showThemeSelectionDialog(themeProvider);
+          },
+        );
+      },
+    );
+  }
+
+  String _getThemeModeText(ThemeMode themeMode) {
+    switch (themeMode) {
+      case ThemeMode.system:
+        return 'System';
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+    }
+  }
+
+  void _showThemeSelectionDialog(ThemeProvider themeProvider) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colorScheme.surface,
+        title: Text(
+          'Choose Theme',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildThemeOption(
+              'System',
+              'Follow system settings',
+              Icons.brightness_auto,
+              ThemeMode.system,
+              themeProvider,
+            ),
+            const SizedBox(height: 8),
+            _buildThemeOption(
+              'Light',
+              'Light theme',
+              Icons.brightness_7,
+              ThemeMode.light,
+              themeProvider,
+            ),
+            const SizedBox(height: 8),
+            _buildThemeOption(
+              'Dark',
+              'Dark theme',
+              Icons.brightness_4,
+              ThemeMode.dark,
+              themeProvider,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(String title, String subtitle, IconData icon, ThemeMode themeMode, ThemeProvider themeProvider) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isSelected = themeProvider.themeMode == themeMode;
+    
+    return InkWell(
+      onTap: () {
+        themeProvider.setThemeMode(themeMode);
+        Navigator.pop(context);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outline,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check,
+                color: colorScheme.primary,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAccountActions() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Account',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF282828),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -432,17 +669,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showImagePickerDialog() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF282828),
-        title: const Text(
+        backgroundColor: colorScheme.surface,
+        title: Text(
           'Change Profile Picture',
-          style: TextStyle(color: Colors.white),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
+          ),
         ),
-        content: const Text(
+        content: Text(
           'Choose how you want to update your profile picture',
-          style: TextStyle(color: Colors.white70),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         actions: [
           TextButton(
@@ -450,11 +694,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pop(context);
               await _pickProfileImage();
             },
-            child: const Text('Gallery', style: TextStyle(color: Color(0xFF1DB954))),
+            child: Text('Gallery', style: TextStyle(color: colorScheme.primary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
         ],
       ),
@@ -464,42 +708,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickProfileImage() async {
     final imageUrl = await _userProfileService.pickAndSaveProfileImage();
     if (imageUrl != null) {
+      final colorScheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile picture updated successfully!'),
-          backgroundColor: Color(0xFF1DB954),
+        SnackBar(
+          content: const Text('Profile picture updated successfully!'),
+          backgroundColor: colorScheme.primary,
         ),
       );
     }
   }
 
   void _showLogoutDialog() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF282828),
-        title: const Text(
+        backgroundColor: colorScheme.surface,
+        title: Text(
           'Logout',
-          style: TextStyle(color: Colors.white),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
+          ),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to logout?',
-          style: TextStyle(color: Colors.white70),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // Handle logout
+              await _handleLogout();
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleLogout() async {
+    try {
+      await _authService.signOut();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error logging out: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 } 

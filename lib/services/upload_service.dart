@@ -131,6 +131,9 @@ class UploadService {
       // Save to Hive for persistence
       await _saveUploadedSongToHive(song);
       
+      // Notify music service to refresh streams
+      _musicService.refreshSongsList();
+      
       print('Successfully added uploaded song: ${song.title}');
     } catch (e) {
       print('Error adding song to music service: $e');
@@ -149,6 +152,7 @@ class UploadService {
         'albumArt': song.albumArt,
         'audioUrl': song.audioUrl,
         'duration': song.duration.inSeconds,
+        'isLiked': song.isLiked,
         'uploadedAt': DateTime.now().toIso8601String(),
       });
       

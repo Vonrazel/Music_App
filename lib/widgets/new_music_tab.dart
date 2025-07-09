@@ -20,6 +20,9 @@ class _NewMusicTabState extends State<NewMusicTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
@@ -28,11 +31,10 @@ class _NewMusicTabState extends State<NewMusicTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'New Music',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -45,11 +47,11 @@ class _NewMusicTabState extends State<NewMusicTab> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.add),
-                label: const Text('Upload'),
+                icon: Icon(Icons.add, color: colorScheme.onPrimary),
+                label: Text('Upload', style: TextStyle(color: colorScheme.onPrimary)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1DB954),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
@@ -60,22 +62,28 @@ class _NewMusicTabState extends State<NewMusicTab> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF282828),
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.sort,
-                  color: Colors.white70,
+                  color: colorScheme.onSurfaceVariant,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Sort by:',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -97,7 +105,10 @@ class _NewMusicTabState extends State<NewMusicTab> {
   }
 
   Widget _buildSortChip(String label, String value) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isSelected = _sortBy == value;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -107,18 +118,17 @@ class _NewMusicTabState extends State<NewMusicTab> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1DB954) : Colors.transparent,
+          color: isSelected ? colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1DB954) : Colors.white30,
+            color: isSelected ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: 12,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),

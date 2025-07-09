@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/music_service.dart';
 import '../widgets/playlist_selection_dialog.dart';
+import '../providers/theme_provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -68,8 +70,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -79,10 +84,10 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Search',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: colorScheme.onSurface,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
@@ -91,19 +96,19 @@ class _SearchScreenState extends State<SearchScreen> {
                   // Search Bar
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF282828),
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'What do you want to listen to?',
-                        hintStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: Colors.white70),
+                                icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
                                 onPressed: () {
                                   _searchController.clear();
                                 },
@@ -129,31 +134,31 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchResults() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     if (_filteredSongs.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.search_off,
-              color: Colors.white54,
+              color: colorScheme.onSurfaceVariant,
               size: 64,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'No results found',
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Try searching for a different song or artist',
-              style: TextStyle(
-                color: Colors.white38,
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -168,10 +173,8 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           Text(
             'Found ${_filteredSongs.length} result${_filteredSongs.length == 1 ? '' : 's'}',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
@@ -190,6 +193,9 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchResultTile(Song song) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return StreamBuilder<Song?>(
       stream: _musicService.currentSongStream,
       builder: (context, snapshot) {
@@ -213,9 +219,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isCurrentSong ? const Color(0xFF1DB954).withValues(alpha: 0.2) : const Color(0xFF282828),
+                  color: isCurrentSong ? colorScheme.primary.withValues(alpha: 0.1) : colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: isCurrentSong ? Border.all(color: const Color(0xFF1DB954), width: 1) : null,
+                  border: isCurrentSong ? Border.all(color: colorScheme.primary, width: 1) : null,
                 ),
                 child: Row(
                   children: [
@@ -240,9 +246,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Text(
                             song.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
@@ -251,9 +256,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           const SizedBox(height: 4),
                           Text(
                             song.artist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -272,7 +276,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         return IconButton(
                           icon: Icon(
                             isLiked ? Icons.favorite : Icons.favorite_border,
-                            color: isLiked ? const Color(0xFF1DB954) : Colors.white70,
+                            color: isLiked ? colorScheme.primary : colorScheme.onSurfaceVariant,
                           ),
                           onPressed: () {
                             _musicService.toggleLikeSong(song.id);
@@ -283,9 +287,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     
                     // Add to Playlist Button
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.add,
-                        color: Colors.white70,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       onPressed: () {
                         showDialog(
@@ -299,7 +303,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     IconButton(
                       icon: Icon(
                         (isCurrentSong && isPlaying) ? Icons.pause : Icons.play_arrow,
-                        color: isCurrentSong ? const Color(0xFF1DB954) : Colors.white,
+                        color: isCurrentSong ? colorScheme.primary : colorScheme.onSurface,
                       ),
                       onPressed: () {
                         if (isCurrentSong) {
@@ -338,6 +342,9 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildCategoryCard(Map<String, dynamic> category) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return GestureDetector(
       onTap: () {
         // Navigate to category page
@@ -363,7 +370,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Icon(
                 category['icon'],
                 size: 80,
-                color: Colors.white.withOpacity(0.2),
+                color: colorScheme.onPrimary.withValues(alpha: 0.2),
               ),
             ),
             // Category Name
@@ -372,9 +379,8 @@ class _SearchScreenState extends State<SearchScreen> {
               bottom: 16,
               child: Text(
                 category['name'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -12,6 +12,7 @@ class MiniPlayer extends StatefulWidget {
 class _MiniPlayerState extends State<MiniPlayer> {
   final MusicService _musicService = MusicService();
   bool _isPlaying = false;
+  bool _isButtonPressed = false; // Local state for immediate button feedback
   Song? _currentSong;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
@@ -82,6 +83,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     // Don't show mini player if no song is playing
     if (_currentSong == null) {
       return const SizedBox.shrink();
@@ -91,11 +95,18 @@ class _MiniPlayerState extends State<MiniPlayer> {
       onTap: _openFullscreenPlayer,
       child: Container(
         height: 70,
-        decoration: const BoxDecoration(
-          color: Color(0xFF282828),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
           border: Border(
-            top: BorderSide(color: Colors.white12, width: 0.5),
+            top: BorderSide(color: colorScheme.outline, width: 0.5),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -104,8 +115,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
               value: _duration.inMilliseconds > 0 
                   ? _position.inMilliseconds / _duration.inMilliseconds 
                   : 0.0,
-              backgroundColor: Colors.white24,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+              backgroundColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
               minHeight: 2,
             ),
             
@@ -130,14 +141,14 @@ class _MiniPlayerState extends State<MiniPlayer> {
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Center(
+                              color: colorScheme.surfaceVariant,
+                              child: Center(
                                 child: SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                                   ),
                                 ),
                               ),
@@ -145,10 +156,10 @@ class _MiniPlayerState extends State<MiniPlayer> {
                           },
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Icon(
+                              color: colorScheme.surfaceVariant,
+                              child: Icon(
                                 Icons.music_note,
-                                color: Colors.white54,
+                                color: colorScheme.onSurfaceVariant,
                                 size: 24,
                               ),
                             );
@@ -166,10 +177,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
                         children: [
                           Text(
                             _currentSong!.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: colorScheme.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -177,9 +186,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
                           const SizedBox(height: 2),
                           Text(
                             _currentSong!.artist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -188,9 +196,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
                           // Show position and duration
                           Text(
                             '${_musicService.getFormattedPosition()} / ${_musicService.getFormattedDuration()}',
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 10,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -210,26 +217,41 @@ class _MiniPlayerState extends State<MiniPlayer> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              child: const Icon(Icons.skip_previous, color: Colors.white, size: 28),
+                              child: Icon(Icons.skip_previous, color: colorScheme.onSurface, size: 28),
                             ),
                           ),
                         ),
                         
                         // Play/Pause button
                         Material(
-                          color: const Color(0xFF1DB954),
+                          color: colorScheme.primary,
                           shape: const CircleBorder(),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(20),
                             onTap: () {
+                              // Immediate visual feedback
+                              setState(() {
+                                _isButtonPressed = true;
+                              });
+                              
+                              // Toggle play/pause
                               _musicService.togglePlayPause();
+                              
+                              // Reset button state after a short delay
+                              Future.delayed(const Duration(milliseconds: 100), () {
+                                if (mounted) {
+                                  setState(() {
+                                    _isButtonPressed = false;
+                                  });
+                                }
+                              });
                             },
                             child: Container(
                               width: 40,
                               height: 40,
                               child: Icon(
                                 _isPlaying ? Icons.pause : Icons.play_arrow,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                                 size: 24,
                               ),
                             ),
@@ -246,7 +268,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              child: const Icon(Icons.skip_next, color: Colors.white, size: 28),
+                              child: Icon(Icons.skip_next, color: colorScheme.onSurface, size: 28),
                             ),
                           ),
                         ),

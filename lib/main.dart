@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
-import 'screens/main_navigation.dart';
+import 'package:provider/provider.dart';
+import 'screens/auth/auth_wrapper.dart';
 import 'services/hive_service.dart';
 import 'services/user_profile_service.dart';
+import 'services/auth_service.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   print('🚀 Starting Music App...');
@@ -29,6 +32,18 @@ void main() async {
     final userProfileService = UserProfileService();
     await userProfileService.initialize();
     print('✅ UserProfileService initialized successfully');
+    
+    print('🔄 Initializing AuthService...');
+    // Initialize AuthService
+    final authService = AuthService();
+    await authService.initialize();
+    print('✅ AuthService initialized successfully');
+    
+    print('🔄 Initializing ThemeProvider...');
+    // Initialize ThemeProvider
+    final themeProvider = ThemeProvider();
+    await themeProvider.initialize();
+    print('✅ ThemeProvider initialized successfully');
     
     print('🎵 Starting MusicApp...');
     runApp(const MusicApp());
@@ -118,80 +133,59 @@ class MusicApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Music App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF1DB954),
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF121212),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF282828),
-          selectedItemColor: Color(0xFF1DB954),
-          unselectedItemColor: Colors.white70,
-        ),
-        cardTheme: const CardThemeData(
-          color: Color(0xFF282828),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1DB954),
-            foregroundColor: Colors.white,
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Music App',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode,
+            theme: themeProvider.getLightTheme(),
+            darkTheme: themeProvider.getDarkTheme(),
+          home: Builder(
+            builder: (context) {
+              try {
+                return const AuthWrapper();
+              } catch (e) {
+                print('Failed to load AuthWrapper: $e');
+                return Scaffold(
+                  backgroundColor: const Color(0xFF121212),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Color(0xFF1DB954),
+                          size: 48,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Failed to load UI',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Error: $e',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            },
           ),
-        ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white),
-        ),
-      ),
-      home: Builder(
-        builder: (context) {
-          try {
-            return const MainNavigation();
-          } catch (e) {
-            print('Failed to load MainNavigation: $e');
-            return Scaffold(
-              backgroundColor: const Color(0xFF121212),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Color(0xFF1DB954),
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Failed to load UI',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Error: $e',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+          );
         },
       ),
     );

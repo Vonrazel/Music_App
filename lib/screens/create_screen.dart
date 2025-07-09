@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/upload_service.dart';
 import '../services/music_service.dart';
+import '../providers/theme_provider.dart';
 
 class CreateScreen extends StatefulWidget {
   const CreateScreen({super.key});
@@ -18,26 +20,29 @@ class _CreateScreenState extends State<CreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // App Bar
             SliverAppBar(
-              backgroundColor: const Color(0xFF121212),
+              backgroundColor: colorScheme.background,
               pinned: true,
-              title: const Text(
+              title: Text(
                 'Create',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colorScheme.onSurface,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.help_outline, color: Colors.white),
+                  icon: Icon(Icons.help_outline, color: colorScheme.onSurface),
                   onPressed: () {},
                 ),
               ],
@@ -71,94 +76,93 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _buildUploadSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Upload Music',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1DB954), Color(0xFF1ed760)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+                      decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.cloud_upload,
-                color: Colors.white,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Upload Your Music',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Share your tracks with the world',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              if (_isUploading) ...[
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.cloud_upload,
+                  color: colorScheme.onPrimary,
+                  size: 48,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Uploading...',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ] else ...[
-                ElevatedButton(
-                  onPressed: _handleFileUpload,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF1DB954),
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: const Text(
-                    'Choose Files',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Text(
-                  'Supported formats: ${_uploadService.getSupportedFormatsString()}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
+                  'Upload Your Music',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Share your tracks with the world',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimary.withValues(alpha: 0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ],
+              const SizedBox(height: 20),
+                              if (_isUploading) ...[
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Uploading...',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: _handleFileUpload,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.onPrimary,
+                      foregroundColor: colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: Text(
+                      'Choose Files',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Supported formats: ${_uploadService.getSupportedFormatsString()}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
             ],
           ),
         ),
@@ -167,15 +171,16 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _buildRecordSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Record Music',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
@@ -183,9 +188,16 @@ class _CreateScreenState extends State<CreateScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF282828),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white24),
+            border: Border.all(color: colorScheme.outline),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -194,7 +206,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 height: 80,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.black26,
+                  color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
@@ -207,17 +219,17 @@ class _CreateScreenState extends State<CreateScreen> {
                               height: 20 + (index % 3) * 10.0,
                               margin: const EdgeInsets.symmetric(horizontal: 1),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1DB954),
+                                color: colorScheme.primary,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             );
                           }),
                         )
-                      : const Icon(
-                          Icons.mic,
-                          color: Colors.white70,
-                          size: 32,
-                        ),
+                                              : Icon(
+                            Icons.mic,
+                            color: colorScheme.onSurfaceVariant,
+                            size: 32,
+                          ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -226,15 +238,14 @@ class _CreateScreenState extends State<CreateScreen> {
               if (_isRecording) ...[
                 LinearProgressIndicator(
                   value: _recordingProgress,
-                  backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                  backgroundColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Recording... ${(_recordingProgress * 100).toInt()}%',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -257,10 +268,10 @@ class _CreateScreenState extends State<CreateScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _isRecording ? Colors.red : const Color(0xFF1DB954),
+                    color: _isRecording ? Colors.red : colorScheme.primary,
                     boxShadow: [
                       BoxShadow(
-                        color: (_isRecording ? Colors.red : const Color(0xFF1DB954)).withOpacity(0.3),
+                        color: (_isRecording ? Colors.red : colorScheme.primary).withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -268,7 +279,7 @@ class _CreateScreenState extends State<CreateScreen> {
                   ),
                   child: Icon(
                     _isRecording ? Icons.stop : Icons.mic,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     size: 32,
                   ),
                 ),
@@ -276,9 +287,8 @@ class _CreateScreenState extends State<CreateScreen> {
               const SizedBox(height: 16),
               Text(
                 _isRecording ? 'Tap to Stop' : 'Tap to Record',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -289,14 +299,16 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _buildRecentCreationsSection() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Recent Creations',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -314,6 +326,8 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   Widget _buildCreationTile(int index) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final titles = ['My Song #1', 'Recorded Track', 'Uploaded Music'];
     final types = ['Uploaded', 'Recorded', 'Uploaded'];
     final dates = ['2 hours ago', 'Yesterday', '3 days ago'];
@@ -322,8 +336,15 @@ class _CreateScreenState extends State<CreateScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF282828),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -332,12 +353,12 @@ class _CreateScreenState extends State<CreateScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: types[index] == 'Recorded' ? Colors.red.withOpacity(0.2) : const Color(0xFF1DB954).withOpacity(0.2),
+              color: types[index] == 'Recorded' ? Colors.red.withValues(alpha: 0.2) : colorScheme.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               types[index] == 'Recorded' ? Icons.mic : Icons.music_note,
-              color: types[index] == 'Recorded' ? Colors.red : const Color(0xFF1DB954),
+              color: types[index] == 'Recorded' ? Colors.red : colorScheme.primary,
             ),
           ),
           const SizedBox(width: 16),
@@ -349,26 +370,23 @@ class _CreateScreenState extends State<CreateScreen> {
               children: [
                 Text(
                   titles[index],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   types[index],
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   dates[index],
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -377,11 +395,11 @@ class _CreateScreenState extends State<CreateScreen> {
           
           // Actions
           IconButton(
-            icon: const Icon(Icons.play_arrow, color: Colors.white),
+            icon: Icon(Icons.play_arrow, color: colorScheme.onSurface),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white70),
+            icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
             onPressed: () {},
           ),
         ],

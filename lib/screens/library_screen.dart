@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/music_service.dart';
 import '../widgets/playlist_selection_dialog.dart';
+import '../providers/theme_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -15,30 +17,33 @@ class _LibraryScreenState extends State<LibraryScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // App Bar
             SliverAppBar(
-              backgroundColor: const Color(0xFF121212),
+              backgroundColor: colorScheme.background,
               pinned: true,
-              title: const Text(
+              title: Text(
                 'Your Library',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colorScheme.onSurface,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white),
+                  icon: Icon(Icons.search, color: colorScheme.onSurface),
                   onPressed: () {},
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: Icon(Icons.add, color: colorScheme.onSurface),
                   onPressed: () {
                     _showCreatePlaylistDialog();
                   },
@@ -83,6 +88,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
       builder: (context, snapshot) {
         final likedSongs = snapshot.data ?? [];
         final likedSongCount = likedSongs.length;
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,27 +105,24 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.favorite,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     size: 16,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Liked Songs',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const Spacer(),
                 Text(
                   '$likedSongCount songs',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -129,8 +133,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF282828),
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
@@ -138,30 +149,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1DB954).withValues(alpha: 0.2),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.favorite_border,
-                        color: Color(0xFF1DB954),
+                        color: colorScheme.primary,
                         size: 30,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'No liked songs yet',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Like songs to see them here',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -189,6 +197,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
       builder: (context, snapshot) {
         final currentSong = snapshot.data;
         final isCurrentSong = currentSong?.id == song.id;
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
         
         return StreamBuilder<bool>(
           stream: _musicService.isPlayingStream,
@@ -207,9 +217,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isCurrentSong ? const Color(0xFF1DB954).withValues(alpha: 0.2) : const Color(0xFF282828),
+                  color: isCurrentSong 
+                      ? colorScheme.primary.withValues(alpha: 0.1) 
+                      : colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: isCurrentSong ? Border.all(color: const Color(0xFF1DB954), width: 1) : null,
+                  border: isCurrentSong 
+                      ? Border.all(color: colorScheme.primary, width: 1) 
+                      : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -228,14 +249,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Center(
+                              color: colorScheme.surfaceVariant,
+                              child: Center(
                                 child: SizedBox(
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                                   ),
                                 ),
                               ),
@@ -243,10 +264,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           },
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Icon(
+                              color: colorScheme.surfaceVariant,
+                              child: Icon(
                                 Icons.music_note,
-                                color: Colors.white54,
+                                color: colorScheme.onSurfaceVariant,
                                 size: 20,
                               ),
                             );
@@ -263,10 +284,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         children: [
                           Text(
                             song.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: colorScheme.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -274,9 +293,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           const SizedBox(height: 4),
                           Text(
                             song.artist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -295,9 +313,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(
+                          child: Icon(
                             Icons.favorite,
-                            color: Color(0xFF1DB954),
+                            color: colorScheme.primary,
                             size: 24,
                           ),
                         ),
@@ -317,9 +335,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(
+                          child: Icon(
                             Icons.add,
-                            color: Colors.white70,
+                            color: colorScheme.onSurfaceVariant,
                             size: 24,
                           ),
                         ),
@@ -342,7 +360,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           padding: const EdgeInsets.all(8),
                           child: Icon(
                             (isCurrentSong && isPlaying) ? Icons.pause : Icons.play_arrow,
-                            color: isCurrentSong ? const Color(0xFF1DB954) : Colors.white,
+                            color: isCurrentSong ? colorScheme.primary : colorScheme.onSurface,
                             size: 24,
                           ),
                         ),
