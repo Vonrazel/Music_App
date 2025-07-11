@@ -60,6 +60,16 @@ class MusicService {
   // Hive Service for persistent data
   final HiveService _hiveService = HiveService();
 
+  // --- Real-time Listening Time Tracking ---
+  Timer? _listeningTimer;
+  DateTime? _listeningStartTime;
+  Duration _currentSessionTime = Duration.zero;
+  String? _lastSongId;
+  final StreamController<Duration> _listeningTimeController = StreamController<Duration>.broadcast();
+
+  // Stream for real-time listening time updates
+  Stream<Duration> get listeningTimeStream => _listeningTimeController.stream;
+
   // Demo/royalty-free remote songs only
   List<Song> _songs = [
     Song(
@@ -193,6 +203,75 @@ class MusicService {
     return topSongId != null ? getSongById(topSongId) : null;
   }
 
+  // --- Enhanced Real-time Listening Time Tracking ---
+  void _startListeningTimer(Song song) {
+    // Stop any existing timer
+    _stopListeningTimer();
+    
+    // Start new timer for this song
+    _listeningStartTime = DateTime.now();
+    _lastSongId = song.id;
+    _currentSessionTime = Duration.zero;
+    
+    // Start real-time timer that updates every second
+    _listeningTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_isPlaying && _listeningStartTime != null) {
+        final elapsed = DateTime.now().difference(_listeningStartTime!);
+        _currentSessionTime = elapsed;
+        
+        // Notify listeners of real-time updates
+        _listeningTimeController.add(_currentSessionTime);
+        _analyticsController.add(null);
+        
+        print('🎵 Real-time listening: ${elapsed.inSeconds}s for ${song.title}');
+      }
+    });
+    
+    print('🎵 Started listening timer for: ${song.title}');
+  }
+
+  void _stopListeningTimer() async {
+    // Stop the timer
+    _listeningTimer?.cancel();
+    _listeningTimer = null;
+    
+    // Save accumulated listening time if any
+    if (_listeningStartTime != null && _currentSessionTime.inSeconds > 0) {
+      await _hiveService.addListeningTime(_currentSessionTime);
+      print('🎵 Saved listening time: ${_currentSessionTime.inSeconds}s');
+      
+      // Notify analytics listeners
+      _analyticsController.add(null);
+    }
+    
+    // Reset tracking variables
+    _listeningStartTime = null;
+    _lastSongId = null;
+    _currentSessionTime = Duration.zero;
+  }
+
+  // Get current real-time listening time (for UI display)
+  Duration getCurrentListeningTime() {
+    final storedTime = _hiveService.getTotalListeningTime();
+    if (_listeningStartTime != null && _isPlaying) {
+      final elapsed = DateTime.now().difference(_listeningStartTime!);
+      return storedTime + elapsed;
+    }
+    return storedTime;
+  }
+
+  // Handle app lifecycle changes (call this from main.dart or app lifecycle)
+  Future<void> onAppPaused() async {
+    await persistListeningSession();
+  }
+
+  Future<void> onAppResumed() async {
+    // Resume listening timer if music was playing
+    if (_isPlaying && _currentSong != null) {
+      _startListeningTimer(_currentSong!);
+    }
+  }
+
   // --- Analytics Update Helpers (now using Hive) ---
   void _recordPlay(Song song) async {
     // Record play in Hive
@@ -210,9 +289,13 @@ class MusicService {
     _analyticsController.add(null);
   }
 
-
-
-
+  // Call this on app pause/resume to persist session
+  Future<void> persistListeningSession() async {
+    if (_currentSessionTime.inSeconds > 0) {
+      await _hiveService.addListeningTime(_currentSessionTime);
+      _currentSessionTime = Duration.zero;
+    }
+  }
 
   // Initialize the audio session
   Future<void> initialize() async {
@@ -443,6 +526,7 @@ class MusicService {
         _isPlayingController.add(_isPlaying);
         // --- Analytics: Record play ---
         _recordPlay(song);
+        _startListeningTimer(song); // Start timer for resumed playback
         return;
       }
       
@@ -503,6 +587,7 @@ class MusicService {
       
       // --- Analytics: Record play ---
       _recordPlay(song);
+      _startListeningTimer(song); // Start timer for new playback
       
     } catch (e) {
       print('❌ Error playing song: $e');
@@ -543,7 +628,7 @@ class MusicService {
       _isPlaying = newPlayingState;
       _isPlayingController.add(_isPlaying);
       
-      // Perform audio operation in background
+      // Handle listening timer based on new state
       if (newPlayingState) {
         // Resume the audio from the same position
         _audioPlayer.play().catchError((e) {
@@ -553,6 +638,11 @@ class MusicService {
           _isPlayingController.add(_isPlaying);
         });
         print('▶️ Audio resumed from position: ${_position.inSeconds} seconds');
+        
+        // Resume listening timer
+        if (_currentSong != null) {
+          _startListeningTimer(_currentSong!);
+        }
       } else {
         // Pause the audio (position is automatically saved)
         _audioPlayer.pause().catchError((e) {
@@ -562,6 +652,9 @@ class MusicService {
           _isPlayingController.add(_isPlaying);
         });
         print('⏸️ Audio paused at position: ${_position.inSeconds} seconds');
+        
+        // Stop listening timer when paused
+        _stopListeningTimer();
       }
     } catch (e) {
       print('❌ Error toggling play/pause: $e');
@@ -571,8 +664,9 @@ class MusicService {
   // Stop playback
   Future<void> stop() async {
     try {
-      // --- Analytics: Add listening time ---
-      if (_currentSong != null) _addListeningTime(_position);
+      // Stop listening timer and save accumulated time
+      _stopListeningTimer();
+      
       await _audioPlayer.stop();
       _isPlaying = false;
       _isPlayingController.add(_isPlaying);
@@ -599,6 +693,9 @@ class MusicService {
       return;
     }
     
+    // Stop listening timer for current song
+    _stopListeningTimer();
+    
     final currentIndex = _songs.indexWhere((song) => song.id == _currentSong!.id);
     if (currentIndex < _songs.length - 1) {
       await playSong(_songs[currentIndex + 1]);
@@ -616,6 +713,9 @@ class MusicService {
       }
       return;
     }
+    
+    // Stop listening timer for current song
+    _stopListeningTimer();
     
     final currentIndex = _songs.indexWhere((song) => song.id == _currentSong!.id);
     if (currentIndex > 0) {
@@ -662,6 +762,7 @@ class MusicService {
       _likedSongsController.close();
       _uploadedSongsController.close();
       _analyticsController.close();
+      _listeningTimeController.close(); // Close the new controller
       print('MusicService disposed successfully');
     } catch (e) {
       print('Error disposing MusicService: $e');
@@ -705,12 +806,11 @@ class MusicService {
     return result;
   }
   Duration getAvgListeningTimePerDay() {
-    // This would need to be calculated from daily listening time data
-    // For now, return a simple calculation
+    // Calculate average listening time per day based on total time and streak
     final totalTime = getTotalListeningTime();
-    final totalPlays = _hiveService.getTotalPlays();
-    if (totalPlays == 0) return Duration.zero;
-    return Duration(seconds: totalTime.inSeconds ~/ totalPlays);
+    final streak = _hiveService.getStreak();
+    if (streak == 0) return Duration.zero;
+    return Duration(seconds: totalTime.inSeconds ~/ streak);
   }
   int getStreak() => _hiveService.getStreak();
   List<Map<String, dynamic>> getRecentlyPlayedWithTimestamps({int max = 10}) {

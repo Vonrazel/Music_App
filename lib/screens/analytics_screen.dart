@@ -45,41 +45,64 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stat Cards Row
-                  SizedBox(
-                    height: 110,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _StatCard(
-                          title: 'Total Tracks Played',
-                          value: '${_musicService.totalTracksPlayed}',
-                          icon: Icons.music_note,
-                          color: const Color(0xFF1DB954),
-                        ),
-                        const SizedBox(width: 12),
-                        _StatCard(
-                          title: 'Listening Time',
-                          value: _formatDuration(_musicService.totalListeningTime),
-                          icon: Icons.timer,
-                          color: const Color(0xFF1ed760),
-                        ),
-                        const SizedBox(width: 12),
-                        _StatCard(
-                          title: 'Avg/Day',
-                          value: _formatDuration(_musicService.getAvgListeningTimePerDay()),
-                          icon: Icons.calendar_today,
-                          color: const Color(0xFF1DB954),
-                        ),
-                        const SizedBox(width: 12),
-                        _StatCard(
-                          title: 'Streak',
-                          value: '${_musicService.getStreak()} days',
-                          icon: Icons.local_fire_department,
-                          color: Colors.orange,
-                        ),
-                      ],
-                    ),
+                  // Stat Cards Row - Now Responsive
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Determine if we should use single row or wrap based on screen width
+                      final isTablet = constraints.maxWidth > 600;
+                      final cardWidth = isTablet ? (constraints.maxWidth - 60) / 4 : 150.0;
+                      
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: cardWidth,
+                            child: _StatCard(
+                              title: 'Total Tracks Played',
+                              value: '${_musicService.totalTracksPlayed}',
+                              icon: Icons.music_note,
+                              color: const Color(0xFF1DB954),
+                            ),
+                          ),
+                          // Real-time Listening Time Card
+                          SizedBox(
+                            width: cardWidth,
+                            child: StreamBuilder<Duration>(
+                              stream: _musicService.listeningTimeStream,
+                              builder: (context, snapshot) {
+                                final currentListeningTime = _musicService.getCurrentListeningTime();
+                                return _StatCard(
+                                  title: 'Listening Time',
+                                  value: _formatDuration(currentListeningTime),
+                                  icon: Icons.timer,
+                                  color: const Color(0xFF1ed760),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: cardWidth,
+                            child: _StatCard(
+                              title: 'Avg/Day',
+                              value: _formatDuration(_musicService.getAvgListeningTimePerDay()),
+                              icon: Icons.calendar_today,
+                              color: const Color(0xFF1DB954),
+                            ),
+                          ),
+                          SizedBox(
+                            width: cardWidth,
+                            child: _StatCard(
+                              title: 'Streak',
+                              value: '${_musicService.getStreak()} days',
+                              icon: Icons.local_fire_department,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 28),
                   // Mood/Genre Placeholder (now full width)
@@ -115,15 +138,30 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Recently Played
                   _buildRecentlyPlayedSection(),
                   const SizedBox(height: 24),
-                  // Total Listening Time
-                  Card(
-                    color: colorScheme.surface,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading: Icon(Icons.timer, color: colorScheme.primary, size: 40),
-                      title: Text('Total Listening Time', style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onSurface)),
-                      subtitle: Text(_formatDuration(_musicService.totalListeningTime), style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant)),
-                    ),
+                  // Real-time Total Listening Time Card
+                  StreamBuilder<Duration>(
+                    stream: _musicService.listeningTimeStream,
+                    builder: (context, snapshot) {
+                      final currentListeningTime = _musicService.getCurrentListeningTime();
+                      return Card(
+                        color: colorScheme.surface,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: Icon(Icons.timer, color: colorScheme.primary, size: 40),
+                          title: Text('Total Listening Time', style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onSurface)),
+                          subtitle: Text(
+                            _formatDuration(currentListeningTime), 
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          trailing: _musicService.isPlaying 
+                            ? Icon(Icons.play_circle_filled, color: Colors.green, size: 24)
+                            : null,
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   // Number of Liked Songs
@@ -238,7 +276,6 @@ class _StatCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     
     return Container(
-      width: 150,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,

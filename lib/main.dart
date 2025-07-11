@@ -6,6 +6,7 @@ import 'screens/auth/auth_wrapper.dart';
 import 'services/hive_service.dart';
 import 'services/user_profile_service.dart';
 import 'services/auth_service.dart';
+import 'services/music_service.dart';
 import 'providers/theme_provider.dart';
 
 void main() async {
@@ -125,8 +126,59 @@ class ErrorApp extends StatelessWidget {
   }
 }
 
-class MusicApp extends StatelessWidget {
+class MusicApp extends StatefulWidget {
   const MusicApp({super.key});
+
+  @override
+  State<MusicApp> createState() => _MusicAppState();
+}
+
+class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
+  final MusicService _musicService = MusicService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeMusicService();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _initializeMusicService() async {
+    try {
+      await _musicService.initialize();
+      print('✅ MusicService initialized successfully');
+    } catch (e) {
+      print('❌ Error initializing MusicService: $e');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    switch (state) {
+      case AppLifecycleState.paused:
+        print('📱 App paused - saving listening time');
+        _musicService.onAppPaused();
+        break;
+      case AppLifecycleState.resumed:
+        print('📱 App resumed - resuming listening timer');
+        _musicService.onAppResumed();
+        break;
+      case AppLifecycleState.detached:
+        print('📱 App detached - saving listening time');
+        _musicService.onAppPaused();
+        break;
+      default:
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,45 +192,45 @@ class MusicApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             theme: themeProvider.getLightTheme(),
             darkTheme: themeProvider.getDarkTheme(),
-          home: Builder(
-            builder: (context) {
-              try {
-                return const AuthWrapper();
-              } catch (e) {
-                print('Failed to load AuthWrapper: $e');
-                return Scaffold(
-                  backgroundColor: const Color(0xFF121212),
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 48,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Failed to load UI',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onBackground,
+            home: Builder(
+              builder: (context) {
+                try {
+                  return const AuthWrapper();
+                } catch (e) {
+                  print('Failed to load AuthWrapper: $e');
+                  return Scaffold(
+                    backgroundColor: const Color(0xFF121212),
+                    body: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 48,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Error: $e',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Failed to load UI',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onBackground,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error: $e',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }
-            },
-          ),
+                  );
+                }
+              },
+            ),
           );
         },
       ),
