@@ -140,8 +140,10 @@ class _CreateScreenState extends State<CreateScreen> {
                   ElevatedButton(
                     onPressed: _handleFileUpload,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.onPrimary,
-                      foregroundColor: colorScheme.primary,
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: theme.brightness == Brightness.dark
+                          ? Colors.black
+                          : Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),

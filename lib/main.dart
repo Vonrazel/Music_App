@@ -69,37 +69,34 @@ class ErrorApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        primaryColor: const Color(0xFF1DB954),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        primaryColor: Theme.of(context).colorScheme.primary,
+        scaffoldBackgroundColor: Theme.of(context).colorScheme.background,
       ),
       home: Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline,
-                  color: Color(0xFF1DB954),
+                  color: Theme.of(context).colorScheme.primary,
                   size: 64,
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'App Failed to Start',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'There was an error initializing the app. Please check the console for details and try refreshing the page.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -113,8 +110,8 @@ class ErrorApp extends StatelessWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1DB954),
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   ),
                   child: const Text('Reload App'),
@@ -155,26 +152,23 @@ class MusicApp extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
-                          color: Color(0xFF1DB954),
+                          color: Theme.of(context).colorScheme.primary,
                           size: 48,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Failed to load UI',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onBackground,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Error: $e',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
                           ),
                           textAlign: TextAlign.center,
                         ),

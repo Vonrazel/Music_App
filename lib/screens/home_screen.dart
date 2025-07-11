@@ -634,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isCurrentSong ? colorScheme.primary.withValues(alpha: 0.1) : colorScheme.surface,
+                  color: isCurrentSong ? colorScheme.primary.withOpacity(0.1) : colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                   border: isCurrentSong ? Border.all(color: colorScheme.primary, width: 1) : null,
                 ),
@@ -671,14 +671,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Center(
+                              color: colorScheme.surface,
+                              child: Center(
                                 child: SizedBox(
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                                   ),
                                 ),
                               ),
@@ -686,10 +686,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           },
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Icon(
+                              color: colorScheme.surface,
+                              child: Icon(
                                 Icons.music_note,
-                                color: Colors.white54,
+                                color: colorScheme.onSurface.withOpacity(0.54),
                                 size: 20,
                               ),
                             );
@@ -706,19 +706,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         children: [
                           Text(
                             song.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.w500,
-                            ),
+                            ) ?? TextStyle(color: colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             song.artist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ) ?? TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 14),
                           ),
                         ],
                       ),
@@ -742,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               padding: const EdgeInsets.all(8),
                               child: Icon(
                                 isLiked ? Icons.favorite : Icons.favorite_border,
-                                color: isLiked ? const Color(0xFF1DB954) : Colors.white70,
+                                color: isLiked ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
                                 size: 24,
                               ),
                             ),
@@ -764,9 +762,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(
+                          child: Icon(
                             Icons.add,
-                            color: Colors.white70,
+                            color: colorScheme.onSurface.withOpacity(0.7),
                             size: 24,
                           ),
                         ),
@@ -788,7 +786,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           child: Icon(
-                            isCurrentSong && isPlaying ? Icons.pause : Icons.play_arrow,
+                            (isCurrentSong && isPlaying) ? Icons.pause : Icons.play_arrow,
                             color: colorScheme.onSurface,
                             size: 24,
                           ),
@@ -835,7 +833,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isCurrentSong ? colorScheme.primary.withValues(alpha: 0.1) : colorScheme.surface,
+                  color: isCurrentSong ? colorScheme.primary.withOpacity(0.1) : colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                   border: isCurrentSong ? Border.all(color: colorScheme.primary, width: 1) : null,
                 ),
@@ -876,14 +874,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Center(
+                              color: colorScheme.surface,
+                              child: Center(
                                 child: SizedBox(
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DB954)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                                   ),
                                 ),
                               ),
@@ -891,10 +889,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           },
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF282828),
-                              child: const Icon(
+                              color: colorScheme.surface,
+                              child: Icon(
                                 Icons.music_note,
-                                color: Colors.white54,
+                                color: colorScheme.onSurface.withOpacity(0.54),
                                 size: 20,
                               ),
                             );
@@ -911,19 +909,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         children: [
                           Text(
                             song.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface,
                               fontWeight: FontWeight.w500,
-                            ),
+                            ) ?? TextStyle(color: colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             song.artist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ) ?? TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 14),
                           ),
                         ],
                       ),
@@ -947,7 +943,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               padding: const EdgeInsets.all(8),
                               child: Icon(
                                 isLiked ? Icons.favorite : Icons.favorite_border,
-                                color: isLiked ? const Color(0xFF1DB954) : Colors.white70,
+                                color: isLiked ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
                                 size: 24,
                               ),
                             ),
@@ -969,9 +965,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(
+                          child: Icon(
                             Icons.add,
-                            color: Colors.white70,
+                            color: colorScheme.onSurface.withOpacity(0.7),
                             size: 24,
                           ),
                         ),

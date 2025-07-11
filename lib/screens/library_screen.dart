@@ -439,12 +439,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Colors.black.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.play_arrow,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     size: 40,
                   ),
                 ),
@@ -455,9 +455,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             // Track Info
             Text(
               song.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
@@ -466,9 +465,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             const SizedBox(height: 4),
             Text(
               song.artist,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -490,13 +488,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Playlists',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).brightness == Brightness.light
+                  ? Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    )
+                  : Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                    ),
             ),
             const SizedBox(height: 16),
             ListView.builder(
@@ -552,18 +554,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 children: [
                   Text(
                     playlistName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: Theme.of(context).brightness == Brightness.light
+                        ? Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black, fontWeight: FontWeight.w500)
+                        : Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onBackground, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$songCount songs',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
+                    'songCount songs',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.black54
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -572,7 +575,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             
             // Three-dot menu
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white70),
+              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
               onSelected: (value) {
                 if (value == 'rename') {
                   _showRenamePlaylistDialog(playlistId, playlistName);
@@ -603,26 +606,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF282828),
-        title: const Text('Rename Playlist', style: TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text('Rename Playlist', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
         content: TextField(
           controller: textController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+          decoration: InputDecoration(
             labelText: 'Playlist Name',
-            labelStyle: TextStyle(color: Colors.white70),
+            labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white70),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF1DB954)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
           ),
           TextButton(
             onPressed: () async {
@@ -637,7 +640,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Rename', style: TextStyle(color: Color(0xFF1DB954))),
+            child: Text('Rename', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
           ),
         ],
       ),
@@ -648,7 +651,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF282828),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text('Delete Playlist', style: TextStyle(color: Colors.white)),
         content: Text(
           'Are you sure you want to delete "$playlistName"? This action cannot be undone.',
@@ -678,7 +681,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF282828),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text('Create Playlist', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: textController,

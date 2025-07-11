@@ -195,7 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.1),
+            color: colorScheme.shadow.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -266,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.05),
+                color: colorScheme.shadow.withOpacity(0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -362,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.05),
+                color: colorScheme.shadow.withOpacity(0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -567,7 +567,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected ? colorScheme.primary.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? colorScheme.primary : colorScheme.outline,
@@ -634,7 +634,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.05),
+                color: colorScheme.shadow.withOpacity(0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
